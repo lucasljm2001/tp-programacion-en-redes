@@ -1,0 +1,15 @@
+# Ignorar todos los ejecutables en la carpeta actual y subcarpetas
+*.out
+*.o
+*.exe
+*.a
+*.so
+*.dll
+*.bin
+*.elf
+
+# Ignorar los binarios sin extensión (ejecutables de Linux)
+*/a.out
+*/main
+*/programa
+*/build/*

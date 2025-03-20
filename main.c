@@ -7,9 +7,9 @@ typedef void * (* PCALLBACK) (void *);
 void *readKey(void *args) {
     
     
-    char caracter = getchar();
+    int* caracter = (int *) args;
     
-    printf("keycode %d\n", caracter);
+    printf("keycode %d\n", *caracter);
     
     return NULL;
 }
@@ -21,9 +21,20 @@ int main(int argc, const char * argv[]) {
 
     PCALLBACK callback = readKey;
 
+    
+
     printf("Ha iniciado la ejecucion principal\n");
+
+    while (1){
+        printf("Ingresar caracter\n");
+        int caracter = getchar();
+        getchar();
+        pthread_create(&thread, NULL, callback, &caracter);
+        usleep(5000);
+
+    }
         
-    pthread_create(&thread, NULL, callback, NULL);
+    
 
     pthread_join(thread, NULL);
 

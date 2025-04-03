@@ -40,9 +40,15 @@ int main(int argc, char *argv[]) {
     
     
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //sudo apt install net-tools
-    serv_addr.sin_port = htons(3030);
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //sudo apt install net-tool
     
+    // por que funciona igual si le doy una direccion cualquiera? no deberia fallar?
+    // serv_addr.sin_addr.s_addr = inet_addr("10.0.2.15");
+    
+    serv_addr.sin_port = htons(3035);
+    // se abre en cualquier puerto, no deberia verlo en el 3030 en la consola?
+    // si uso la ip como la forma propuesta si lo abre en el port que le doy
+    // sino lo abre en cualquiera
 
     /* The call to the function "bind()" assigns the details specified
      * in the structure serv_addr' to the socket created in the step above
@@ -55,7 +61,7 @@ int main(int argc, char *argv[]) {
      */
     listen(listenfd, 10);
     
-    printf("listening port 3030...\n");
+    printf("listening port 3030\n");
     
     /* In the call to accept(), the server is put to sleep and when for an incoming
      * client request, the three way TCP handshake* is complete, the function accept()

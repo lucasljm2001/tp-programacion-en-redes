@@ -13,10 +13,24 @@
 #include <sys/stat.h>
 #include <sys/sendfile.h>
 
+typedef void * (* PCALLBACK) (void *);
+
+void* atenderCliente(void* args){
+
+    int* clienteActual = (int*) args;
+
+    printf("Cliente %d atendido\n",*clienteActual);
+
+    *clienteActual++;
+
+}
+
 int main(int argc, char *argv[]) {
     int listenfd = 0, clientSocket = 0;
     struct sockaddr_in serv_addr;
     struct sockaddr_in client_addr;
+
+    int clientesAtendidos = 0;
 
     char sendBuff[1025];
     
@@ -42,13 +56,9 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //sudo apt install net-tool
     
-    // por que funciona igual si le doy una direccion cualquiera? no deberia fallar?
-    // serv_addr.sin_addr.s_addr = inet_addr("10.0.2.15");
     
-    serv_addr.sin_port = htons(3035);
-    // se abre en cualquier puerto, no deberia verlo en el 3030 en la consola?
-    // si uso la ip como la forma propuesta si lo abre en el port que le doy
-    // sino lo abre en cualquiera
+    serv_addr.sin_port = htons(3030);
+
 
     /* The call to the function "bind()" assigns the details specified
      * in the structure serv_addr' to the socket created in the step above
@@ -68,7 +78,19 @@ int main(int argc, char *argv[]) {
      * wakes up and returns the socket descriptor representing the client socket.
      */
     socklen_t size = sizeof(client_addr);
+
+    PCALLBACK callback = atenderCliente;
+    
+    while (1)
+    {
+        clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
+
+        pthread_t thread;
+
+        printf("Atendiendo cliente %d\n", clientesAtendidos);
+
+        pthread_create(&thread, NULL,callback, &clientesAtendidos);
+    }
     
     
-    clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
 }

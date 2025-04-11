@@ -21,7 +21,7 @@ void* atenderCliente(void* args){
 
     printf("Cliente %d atendido\n",*clienteActual);
 
-    *clienteActual++;
+    return NULL;
 
 }
 
@@ -90,6 +90,10 @@ int main(int argc, char *argv[]) {
         printf("Atendiendo cliente %d\n", clientesAtendidos);
 
         pthread_create(&thread, NULL,callback, &clientesAtendidos);
+
+        pthread_detach(thread);
+        
+        clientesAtendidos++;
     }
     
     

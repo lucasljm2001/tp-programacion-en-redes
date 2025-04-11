@@ -1,0 +1,8 @@
+# Ignorar todos los archivos que no tienen extensión
+*
+
+# Pero permite carpetas
+!*/
+
+# Pero permite archivos con extensión
+!*.*

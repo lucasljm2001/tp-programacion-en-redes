@@ -21,9 +21,17 @@ void* atenderCliente(void* args){
 
     char buffer[5];
 
-    int req = recv(clientSocket, buffer, strlen(buffer), 0);
+    int req = recv(clientSocket, buffer, sizeof(buffer)-1, 0);
 
-    printf("Peticion recibida %c", buffer);
+    buffer[req] = '\0';
+
+
+    printf("Peticion recibida: %s\n", buffer);
+
+    char message[] = "PONG";
+
+    int cxBytes = send(clientSocket, message, strlen(message), 0);
+
 
     return NULL;
 
@@ -84,10 +92,14 @@ int main(int argc, char *argv[]) {
     socklen_t size = sizeof(client_addr);
 
     PCALLBACK callback = atenderCliente;
+
+    unsigned long tmain = pthread_self();
+
     
     while (1)
     {
         clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
+
 
         pthread_t clienteThread;
         pthread_attr_t threadAttrs;
@@ -98,14 +110,14 @@ int main(int argc, char *argv[]) {
         pthread_attr_setschedpolicy(&threadAttrs, SCHED_FIFO);  
     
 
-        // pthread_create(&thread, NULL,callback, &clientesAtendidos);
+        pthread_create(&clienteThread, &threadAttrs,callback, &clientSocket);
 
         // pthread_detach(thread);
         
         // clientesAtendidos++;
 
-        atenderCliente(&clientSocket);
     }
-    
+
+    close(clientSocket);
     
 }

@@ -54,6 +54,16 @@ int main(int argc, char * argv[]) {
     char message[] = "PING";
 
     int cxBytes = send(clientfd, message, strlen(message), 0);
+
+    char buffer[5];
+
+    int req = recv(clientfd, buffer, sizeof(buffer)-1, 0);
+
+    buffer[req] = '\0';
+
+    printf("Respuesta recibida: %s\n", buffer);
+
+    close(clientfd);
     
 
 }

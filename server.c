@@ -52,9 +52,22 @@ void* atenderCliente(void* args){
         }
     } while (nbytes > 0);
 
+    // Dentro de la función atenderCliente, después de recibir el buffer:
+    if (strstr(buffer, "GET / ")) {
+        printf("Solicitud principal (/) recibida\n");
+    } else if (strstr(buffer, "GET /favicon.ico")) {
+        printf("Solicitud de favicon recibida\n");
+        close(clientSocket);  // Cierra sin respuesta para evitar loops
+        free(args);
+        return NULL;
+    }
 
-   printf("Solicitud recibida (socket %d, %d bytes):\n%.*s\n", 
-       clientSocket, totalRead, totalRead, buffer);
+   char *end_of_first_line = strstr(buffer, "\r\n");
+    if (end_of_first_line) {
+        *end_of_first_line = '\0';  // Termina la cadena al final de la primera línea
+    }
+    printf("Solicitud: %s (socket %d)\n", buffer, clientSocket);
+
 
     
     // send response

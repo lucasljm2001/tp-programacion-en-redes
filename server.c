@@ -15,24 +15,115 @@
 
 typedef void * (* PCALLBACK) (void *);
 
+typedef struct {
+    char method[16];      
+    char resource[1024];  
+    char protocol[16];    
+    char headers[10][256]; 
+    int header_count;
+} HTTPRequest;
+
+HTTPRequest parse_request(const char *buffer) {
+    HTTPRequest req = {0};
+    char *buffer_copy = strdup(buffer); // Crear copia modificable
+    if (!buffer_copy) return req;
+
+    char *saveptr; // Puntero para estado de strtok_r
+    char *line = strtok_r(buffer_copy, "\r\n", &saveptr);
+
+    if (line) {
+        sscanf(line, "%15s %1023s %15s", req.method, req.resource, req.protocol);
+    }
+
+    // Parsear headers
+    while ((line = strtok_r(NULL, "\r\n", &saveptr)) && req.header_count < 10) {
+        if (strlen(line) == 0) break;
+        strncpy(req.headers[req.header_count++], line, 255);
+    }
+
+    free(buffer_copy); // Liberar la copia
+    return req;
+}
+
 void* atenderCliente(void* args){
 
     int clientSocket = *((int *) args);
 
-    char buffer[5];
+    char buffer[2048];
+    char response[1024];
+    struct stat fileStats;
+    
+    // buscar imagen en filesystem
+    // get image props
+    int imagefd = open("./hello.png", O_RDONLY);
+    fstat(imagefd, &fileStats);
+    // printf("File size : %ld\n", fileStats.st_size);
+    
+    
+        
 
-    int req = recv(clientSocket, buffer, sizeof(buffer)-1, 0);
+    // receive request
+    // printf("Connection established on socket %d\n", clientSocket);
+    memset(buffer, 0, sizeof(buffer));
+    int totalRead = 0;
+    int nbytes = 0;
 
-    buffer[req] = '\0';
+    do {
+    // Limitar lectura para dejar espacio para el '\0'
+    nbytes = recv(clientSocket, buffer + totalRead, sizeof(buffer) - totalRead - 1, 0);
+        if (nbytes > 0) {
+            totalRead += nbytes;
+            buffer[totalRead] = '\0'; // Asegurar terminación
+            if (strstr(buffer, "\r\n\r\n")) break;
+        }
+    } while (nbytes > 0 && totalRead < sizeof(buffer) - 1); // Evitar overflow
+
+    HTTPRequest request = parse_request(buffer);
+
+    printf("Método: %s\n", request.method);
+
+    printf("Recurso: %s\n", request.resource);
+    printf("Protocolo: %s\n", request.protocol);
+    
+    char *responseHeaders;
+
+    if ( strcmp(request.method,"GET") == 0 && strcmp(request.resource,"/imagen.jpg") == 0)
+    {
+        // build response
+        responseHeaders = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";    
+    } else
+    {
+        responseHeaders = "HTTP/1.1 404 Not Found\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";    
+        imagefd = open("./error.png", O_RDONLY);
+        fstat(imagefd, &fileStats);
+    }
+    
+    memset(response, 0, 1024);
+    sprintf(response, responseHeaders, fileStats.st_size);
+    
 
 
-    printf("Peticion recibida: %s\n", buffer);
-
-    char message[] = "PONG";
-
-    int cxBytes = send(clientSocket, message, strlen(message), 0);
-
+    
+    // send response
+    // headers first
+    int sent = send(clientSocket, response, strlen(response), 0);
+    
+    
+    // payload next
+    off_t sbytes = 0;
+    int ret = sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
+    
+    if(ret < 0) {
+        
+        // fprintf(stderr, strerror(errno));
+        exit(1);
+        
+    }
+    
+    printf("sending file... %lld\n", ret);  
+    printf("--------------------------\n"); 
     close(clientSocket);
+    close(imagefd);
 
     free(args);
 
@@ -104,7 +195,6 @@ int main(int argc, char *argv[]) {
 
     PCALLBACK callback = atenderCliente;
 
-    unsigned long tmain = pthread_self();
 
     
     while (1)
@@ -112,6 +202,8 @@ int main(int argc, char *argv[]) {
         int* nuevoSocket = malloc(sizeof(int));
 
         clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
+
+        printf("Acepto conexion\n");
 
         *nuevoSocket = clientSocket;
 

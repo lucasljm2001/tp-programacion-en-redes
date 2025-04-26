@@ -25,21 +25,23 @@ typedef struct {
 
 HTTPRequest parse_request(const char *buffer) {
     HTTPRequest req = {0};
-    char *line = strtok((char *)buffer, "\r\n"); // Primera línea
-    char *rest = NULL;
-    char *copy = strdup(buffer);
+    char *buffer_copy = strdup(buffer); // Crear copia modificable
+    if (!buffer_copy) return req;
 
-    // Parsear primera línea (Método + Recurso + Protocolo)
+    char *saveptr; // Puntero para estado de strtok_r
+    char *line = strtok_r(buffer_copy, "\r\n", &saveptr);
+
     if (line) {
         sscanf(line, "%15s %1023s %15s", req.method, req.resource, req.protocol);
     }
 
-    // Parsear headers (opcional)
-    while ((line = strtok_r(NULL, "\r\n", &rest)) && req.header_count < 10) {
-        if (strlen(line) == 0) break; // Fin de headers (línea vacía)
+    // Parsear headers
+    while ((line = strtok_r(NULL, "\r\n", &saveptr)) && req.header_count < 10) {
+        if (strlen(line) == 0) break;
         strncpy(req.headers[req.header_count++], line, 255);
     }
 
+    free(buffer_copy); // Liberar la copia
     return req;
 }
 
@@ -70,15 +72,14 @@ void* atenderCliente(void* args){
     int nbytes = 0;
 
     do {
-        nbytes = recv(clientSocket, buffer + totalRead, sizeof(buffer) - totalRead, 0);
+    // Limitar lectura para dejar espacio para el '\0'
+    nbytes = recv(clientSocket, buffer + totalRead, sizeof(buffer) - totalRead - 1, 0);
         if (nbytes > 0) {
             totalRead += nbytes;
-            buffer[totalRead] = '\0'; // null-terminate for printf
-            if (strstr(buffer, "\r\n\r\n")) {
-                break; // fin de headers HTTP
-            }
+            buffer[totalRead] = '\0'; // Asegurar terminación
+            if (strstr(buffer, "\r\n\r\n")) break;
         }
-    } while (nbytes > 0);
+    } while (nbytes > 0 && totalRead < sizeof(buffer) - 1); // Evitar overflow
 
     HTTPRequest request = parse_request(buffer);
 

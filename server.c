@@ -31,8 +31,7 @@ void* atenderCliente(void* args){
     
     
     // build response
-    char *responseHeaders = "HTTP/1.1 200\r\nContent-type:image/jpeg\r\nContent-lenght: %ld\r\nConnection: Close\r\n\r\n";
-    memset(response, 0, 1024);
+    char *responseHeaders = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";    memset(response, 0, 1024);
     // sprintf(response, responseHeaders, fileStats.st_size);
         
 
@@ -54,7 +53,8 @@ void* atenderCliente(void* args){
     } while (nbytes > 0);
 
 
-    printf("Solicitud recibida: %s\n", buffer);
+   printf("Solicitud recibida (socket %d, %d bytes):\n%.*s\n", 
+       clientSocket, totalRead, totalRead, buffer);
 
     
     // send response

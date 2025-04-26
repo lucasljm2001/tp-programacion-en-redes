@@ -15,6 +15,33 @@
 
 typedef void * (* PCALLBACK) (void *);
 
+typedef struct {
+    char method[16];      
+    char resource[1024];  
+    char protocol[16];    
+    char headers[10][256]; 
+    int header_count;
+} HTTPRequest;
+
+HTTPRequest parse_request(const char *buffer) {
+    HTTPRequest req = {0};
+    char *line = strtok((char *)buffer, "\r\n"); // Primera línea
+    char *rest = NULL;
+
+    // Parsear primera línea (Método + Recurso + Protocolo)
+    if (line) {
+        sscanf(line, "%15s %1023s %15s", req.method, req.resource, req.protocol);
+    }
+
+    // Parsear headers (opcional)
+    while ((line = strtok_r(NULL, "\r\n", &rest)) && req.header_count < 10) {
+        if (strlen(line) == 0) break; // Fin de headers (línea vacía)
+        strncpy(req.headers[req.header_count++], line, 255);
+    }
+
+    return req;
+}
+
 void* atenderCliente(void* args){
 
     int clientSocket = *((int *) args);
@@ -52,7 +79,11 @@ void* atenderCliente(void* args){
         }
     } while (nbytes > 0);
 
-    printf("Solicitud (socket %d) :\n%s\n", clientSocket, buffer);
+    HTTPRequest request = parse_request(buffer);
+
+    printf("Método: %s\n", request.method);
+    printf("Recurso: %s\n", request.resource);
+    printf("Protocolo: %s\n", request.protocol);
 
 
     

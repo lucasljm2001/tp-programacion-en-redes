@@ -45,6 +45,14 @@ int main(int argc, char *argv[]) {
     int clientesAtendidos = 0;
 
     char sendBuff[1025];
+
+    int puerto = 3030;
+
+    if (argc>1)
+    {
+        puerto = atoi(argv[1]);
+    }
+    
     
 
     /* creates an UN-named socket inside the kernel and returns
@@ -69,7 +77,7 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //sudo apt install net-tool
     
     
-    serv_addr.sin_port = htons(3030);
+    serv_addr.sin_port = htons(puerto);
 
 
     /* The call to the function "bind()" assigns the details specified
@@ -83,7 +91,7 @@ int main(int argc, char *argv[]) {
      */
     listen(listenfd, 10);
     
-    printf("listening port 3030\n");
+    printf("listening port %d\n", puerto);
     
     /* In the call to accept(), the server is put to sleep and when for an incoming
      * client request, the three way TCP handshake* is complete, the function accept()

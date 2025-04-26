@@ -45,6 +45,26 @@ int main(int argc, char * argv[]) {
 
     int ret = connect(clientfd, (struct sockaddr*) &client_addr, size);
     
+    if (ret==1)
+    {
+        close(clientfd);
+        exit(1);
+    }
+
+    char message[] = "PING";
+
+    int cxBytes = send(clientfd, message, strlen(message), 0);
+
+    char buffer[5];
+
+    int req = recv(clientfd, buffer, sizeof(buffer)-1, 0);
+
+    buffer[req] = '\0';
+
+    printf("Respuesta recibida: %s\n", buffer);
+
+    close(clientfd);
+    
 
 }
 

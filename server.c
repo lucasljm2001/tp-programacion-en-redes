@@ -17,9 +17,21 @@ typedef void * (* PCALLBACK) (void *);
 
 void* atenderCliente(void* args){
 
-    int* clienteActual = (int*) args;
+    int clientSocket = *((int *) args);
 
-    printf("Cliente %d atendido\n",*clienteActual);
+    char buffer[5];
+
+    int req = recv(clientSocket, buffer, sizeof(buffer)-1, 0);
+
+    buffer[req] = '\0';
+
+
+    printf("Peticion recibida: %s\n", buffer);
+
+    char message[] = "PONG";
+
+    int cxBytes = send(clientSocket, message, strlen(message), 0);
+
 
     return NULL;
 
@@ -33,6 +45,14 @@ int main(int argc, char *argv[]) {
     int clientesAtendidos = 0;
 
     char sendBuff[1025];
+
+    int puerto = 3030;
+
+    if (argc>1)
+    {
+        puerto = atoi(argv[1]);
+    }
+    
     
 
     /* creates an UN-named socket inside the kernel and returns
@@ -57,7 +77,7 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //sudo apt install net-tool
     
     
-    serv_addr.sin_port = htons(3030);
+    serv_addr.sin_port = htons(puerto);
 
 
     /* The call to the function "bind()" assigns the details specified
@@ -71,7 +91,7 @@ int main(int argc, char *argv[]) {
      */
     listen(listenfd, 10);
     
-    printf("listening port 3030\n");
+    printf("listening port %d\n", puerto);
     
     /* In the call to accept(), the server is put to sleep and when for an incoming
      * client request, the three way TCP handshake* is complete, the function accept()
@@ -80,21 +100,32 @@ int main(int argc, char *argv[]) {
     socklen_t size = sizeof(client_addr);
 
     PCALLBACK callback = atenderCliente;
+
+    unsigned long tmain = pthread_self();
+
     
     while (1)
     {
         clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
 
-        pthread_t thread;
 
-        printf("Atendiendo cliente %d\n", clientesAtendidos);
+        pthread_t clienteThread;
+        pthread_attr_t threadAttrs;
 
-        pthread_create(&thread, NULL,callback, &clientesAtendidos);
 
-        pthread_detach(thread);
-        
-        clientesAtendidos++;
-    }
+        pthread_attr_init(&threadAttrs);
+        pthread_attr_setdetachstate(&threadAttrs, PTHREAD_CREATE_DETACHED);
+        pthread_attr_setschedpolicy(&threadAttrs, SCHED_FIFO);  
     
+
+        pthread_create(&clienteThread, &threadAttrs,callback, &clientSocket);
+
+        // pthread_detach(thread);
+        
+        // clientesAtendidos++;
+
+    }
+
+    close(clientSocket);
     
 }

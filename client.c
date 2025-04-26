@@ -36,7 +36,7 @@ int main(int argc, char * argv[]) {
     
     
     client_addr.sin_family = AF_INET;
-    client_addr.sin_addr.s_addr = inet_addr("10.0.2.15");//htonl(INADDR_ANY); 
+    client_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
     
     
     client_addr.sin_port = htons(3030);
@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
 
     int ret = connect(clientfd, (struct sockaddr*) &client_addr, size);
     
-    if (ret==1)
+    if (ret==-1)
     {
         close(clientfd);
         exit(1);

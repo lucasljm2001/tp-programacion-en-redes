@@ -32,6 +32,9 @@ void* atenderCliente(void* args){
 
     int cxBytes = send(clientSocket, message, strlen(message), 0);
 
+    close(clientSocket);
+
+    free(args);
 
     return NULL;
 
@@ -106,8 +109,11 @@ int main(int argc, char *argv[]) {
     
     while (1)
     {
+        int* nuevoSocket = malloc(sizeof(int));
+
         clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
 
+        *nuevoSocket = clientSocket;
 
         pthread_t clienteThread;
         pthread_attr_t threadAttrs;
@@ -118,7 +124,7 @@ int main(int argc, char *argv[]) {
         pthread_attr_setschedpolicy(&threadAttrs, SCHED_FIFO);  
     
 
-        pthread_create(&clienteThread, &threadAttrs,callback, &clientSocket);
+        pthread_create(&clienteThread, &threadAttrs,callback, nuevoSocket);
 
         // pthread_detach(thread);
         
@@ -126,6 +132,6 @@ int main(int argc, char *argv[]) {
 
     }
 
-    close(clientSocket);
+    close(listenfd);
     
 }

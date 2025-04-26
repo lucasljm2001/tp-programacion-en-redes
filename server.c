@@ -27,6 +27,7 @@ HTTPRequest parse_request(const char *buffer) {
     HTTPRequest req = {0};
     char *line = strtok((char *)buffer, "\r\n"); // Primera línea
     char *rest = NULL;
+    char *copy = strdup(buffer);
 
     // Parsear primera línea (Método + Recurso + Protocolo)
     if (line) {
@@ -103,7 +104,8 @@ void* atenderCliente(void* args){
         
     }
     
-    printf("sending file... %lld\n", ret);   
+    printf("sending file... %lld\n", ret);  
+    printf("--------------------------\n"); 
     close(clientSocket);
     close(imagefd);
 

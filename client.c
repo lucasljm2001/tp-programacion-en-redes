@@ -45,7 +45,7 @@ int main(int argc, char * argv[]) {
 
     int ret = connect(clientfd, (struct sockaddr*) &client_addr, size);
     
-    if (ret==1)
+    if (ret==-1)
     {
         close(clientfd);
         exit(1);

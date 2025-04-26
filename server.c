@@ -17,9 +17,13 @@ typedef void * (* PCALLBACK) (void *);
 
 void* atenderCliente(void* args){
 
-    int* clienteActual = (int*) args;
+    int clientSocket = *((int *) args);
 
-    printf("Cliente %d atendido\n",*clienteActual);
+    char buffer[5];
+
+    int req = recv(clientSocket, buffer, strlen(buffer), 0);
+
+    printf("Peticion recibida %c", buffer);
 
     return NULL;
 
@@ -85,15 +89,22 @@ int main(int argc, char *argv[]) {
     {
         clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
 
-        pthread_t thread;
+        pthread_t clienteThread;
+        pthread_attr_t threadAttrs;
 
-        printf("Atendiendo cliente %d\n", clientesAtendidos);
 
-        pthread_create(&thread, NULL,callback, &clientesAtendidos);
+        pthread_attr_init(&threadAttrs);
+        pthread_attr_setdetachstate(&threadAttrs, PTHREAD_CREATE_DETACHED);
+        pthread_attr_setschedpolicy(&threadAttrs, SCHED_FIFO);  
+    
 
-        pthread_detach(thread);
+        // pthread_create(&thread, NULL,callback, &clientesAtendidos);
+
+        // pthread_detach(thread);
         
-        clientesAtendidos++;
+        // clientesAtendidos++;
+
+        atenderCliente(&clientSocket);
     }
     
     

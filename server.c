@@ -19,20 +19,50 @@ void* atenderCliente(void* args){
 
     int clientSocket = *((int *) args);
 
-    char buffer[5];
+    char buffer[2048];
+    char response[1024];
+    struct stat fileStats;
+    
+    // buscar imagen en filesystem
+    // get image props
+    int imagefd = open("./hello.png", O_RDONLY);
+    fstat(imagefd, &fileStats);
+    // printf("File size : %ld\n", fileStats.st_size);
+    
+    
+    // build response
+    char *responseHeaders = "HTTP/1.1 200\r\nContent-type:image/jpeg\r\nContent-lenght: %ld\r\nConnection: Close\r\n\r\n";
+    memset(response, 0, 1024);
+    // sprintf(response, responseHeaders, fileStats.st_size);
+        
 
-    int req = recv(clientSocket, buffer, sizeof(buffer)-1, 0);
+    // receive request
+    // printf("Connection established on socket %d\n", clientSocket);
+    memset(buffer, 0, 2048);
+    recv(clientSocket, &buffer, 2048, 0);
 
-    buffer[req] = '\0';
+    printf("Solicitud recibida: %s\n", buffer);
 
-
-    printf("Peticion recibida: %s\n", buffer);
-
-    char message[] = "PONG";
-
-    int cxBytes = send(clientSocket, message, strlen(message), 0);
-
+    
+    // send response
+    // headers first
+    // int sent = send(clientSocket, response, strlen(response), 0);
+    
+    
+    // // payload next
+    // off_t sbytes = 0;
+    // int ret = sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
+    
+    // if(ret < 0) {
+        
+    //     // fprintf(stderr, strerror(errno));
+    //     exit(1);
+        
+    // }
+    
+    // printf("sending file... %lld\n", ret);   
     close(clientSocket);
+    close(imagefd);
 
     free(args);
 
@@ -104,7 +134,6 @@ int main(int argc, char *argv[]) {
 
     PCALLBACK callback = atenderCliente;
 
-    unsigned long tmain = pthread_self();
 
     
     while (1)
@@ -112,6 +141,8 @@ int main(int argc, char *argv[]) {
         int* nuevoSocket = malloc(sizeof(int));
 
         clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
+
+        printf("Acepto conexion\n");
 
         *nuevoSocket = clientSocket;
 

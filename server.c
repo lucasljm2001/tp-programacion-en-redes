@@ -32,7 +32,7 @@ void* atenderCliente(void* args){
     
     // build response
     char *responseHeaders = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";    memset(response, 0, 1024);
-    // sprintf(response, responseHeaders, fileStats.st_size);
+    sprintf(response, responseHeaders, fileStats.st_size);
         
 
     // receive request
@@ -52,41 +52,27 @@ void* atenderCliente(void* args){
         }
     } while (nbytes > 0);
 
-    // Dentro de la función atenderCliente, después de recibir el buffer:
-    if (strstr(buffer, "GET / ")) {
-        printf("Solicitud principal (/) recibida\n");
-    } else if (strstr(buffer, "GET /favicon.ico")) {
-        printf("Solicitud de favicon recibida\n");
-        close(clientSocket);  // Cierra sin respuesta para evitar loops
-        free(args);
-        return NULL;
-    }
-
-   char *end_of_first_line = strstr(buffer, "\r\n");
-    if (end_of_first_line) {
-        *end_of_first_line = '\0';  // Termina la cadena al final de la primera línea
-    }
-    printf("Solicitud: %s (socket %d)\n", buffer, clientSocket);
+    printf("Solicitud (socket %d) :\n%s\n", clientSocket, buffer);
 
 
     
     // send response
     // headers first
-    // int sent = send(clientSocket, response, strlen(response), 0);
+    int sent = send(clientSocket, response, strlen(response), 0);
     
     
-    // // payload next
-    // off_t sbytes = 0;
-    // int ret = sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
+    // payload next
+    off_t sbytes = 0;
+    int ret = sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
     
-    // if(ret < 0) {
+    if(ret < 0) {
         
-    //     // fprintf(stderr, strerror(errno));
-    //     exit(1);
+        // fprintf(stderr, strerror(errno));
+        exit(1);
         
-    // }
+    }
     
-    // printf("sending file... %lld\n", ret);   
+    printf("sending file... %lld\n", ret);   
     close(clientSocket);
     close(imagefd);
 

@@ -60,9 +60,6 @@ void* atenderCliente(void* args){
     // printf("File size : %ld\n", fileStats.st_size);
     
     
-    // build response
-    char *responseHeaders = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";    memset(response, 0, 1024);
-    sprintf(response, responseHeaders, fileStats.st_size);
         
 
     // receive request
@@ -84,8 +81,26 @@ void* atenderCliente(void* args){
     HTTPRequest request = parse_request(buffer);
 
     printf("Método: %s\n", request.method);
+
     printf("Recurso: %s\n", request.resource);
     printf("Protocolo: %s\n", request.protocol);
+    
+    char *responseHeaders;
+
+    if ( strcmp(request.method,"GET") == 0 && strcmp(request.resource,"/imagen.jpg") == 0)
+    {
+        // build response
+        responseHeaders = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";    
+    } else
+    {
+        responseHeaders = "HTTP/1.1 404 Not Found\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";    
+        imagefd = open("./error.png", O_RDONLY);
+        fstat(imagefd, &fileStats);
+    }
+    
+    memset(response, 0, 1024);
+    sprintf(response, responseHeaders, fileStats.st_size);
+    
 
 
     

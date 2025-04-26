@@ -38,8 +38,21 @@ void* atenderCliente(void* args){
 
     // receive request
     // printf("Connection established on socket %d\n", clientSocket);
-    memset(buffer, 0, 2048);
-    recv(clientSocket, &buffer, 2048, 0);
+    memset(buffer, 0, sizeof(buffer));
+    int totalRead = 0;
+    int nbytes = 0;
+
+    do {
+        nbytes = recv(clientSocket, buffer + totalRead, sizeof(buffer) - totalRead, 0);
+        if (nbytes > 0) {
+            totalRead += nbytes;
+            buffer[totalRead] = '\0'; // null-terminate for printf
+            if (strstr(buffer, "\r\n\r\n")) {
+                break; // fin de headers HTTP
+            }
+        }
+    } while (nbytes > 0);
+
 
     printf("Solicitud recibida: %s\n", buffer);
 

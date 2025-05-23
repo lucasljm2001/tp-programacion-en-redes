@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
      */
     int yes=1;
     setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
-
+    fcntl(listenfd, F_SETFL, O_NONBLOCK);
 
     memset(&serv_addr, '0', sizeof(serv_addr));
     memset(sendBuff, '0', sizeof(sendBuff));
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
         
         int ret = select(fdmax + 1, &tempreadfds, NULL, NULL, &tv);
         
-        printf("select return: %d.\n", ret);
+       
 
         if(ret == -1) {
         
@@ -141,18 +141,25 @@ int main(int argc, char *argv[]) {
                 
                 if(fd == listenfd) {
                     
-                    struct sockaddr sockaddClient;
-                    socklen_t sockaddClientLength;
+                    struct sockaddr_in sockaddClient;
+                    socklen_t sockaddClientLength = sizeof(sockaddClient);
                     
-                    int socketNewCx = accept(listenfd, &sockaddClient, &sockaddClientLength);
+                    int socketNewCx = accept(listenfd, (struct sockaddr *) &sockaddClient, &sockaddClientLength);
                     
+                    if (socketNewCx = -1){
+                    
+                        perror("accept");
+                    }
+
                     FD_SET(socketNewCx, &readfds);
                     
                     if(socketNewCx > fdmax) {
                     
                         fdmax = socketNewCx;
                     }
-                    atenderCliente(&socketNewCx);
+                    int* ptrSocket = malloc(sizeof(int));
+                    *ptrSocket = socketNewCx;
+                    atenderCliente(ptrSocket);
                     
                     
                 } else {
@@ -176,16 +183,10 @@ int main(int argc, char *argv[]) {
                         }
 
                         
-                    } else {
-                        
-                        printf("socket %ld bytes readed: %s\n", readed, buffer);
                     }
     
                 }
             
-            } else {
-            
-                printf("%d, ", fd);
             }
             
         }

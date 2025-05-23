@@ -75,7 +75,20 @@ void* atenderCliente(void* args) {
     sprintf(response, responseHeaders, fileStats.st_size);
 
     send(clientSocket, response, strlen(response), 0);
-    sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
+    ssize_t sent_bytes = sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
+
+    if (sent_bytes == -1)
+    {
+        if (errno == EPIPE)
+        {
+           printf("El cliente cerro entes la conexion");
+        } else{
+            perror("sendfile");
+        }
+        
+    }
+    
+
 
     close(clientSocket);
     close(imagefd);

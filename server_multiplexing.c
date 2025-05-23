@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
                     
                     int socketNewCx = accept(listenfd, (struct sockaddr *) &sockaddClient, &sockaddClientLength);
                     
-                    if (socketNewCx = -1){
+                    if (socketNewCx == -1){
                     
                         perror("accept");
                     }

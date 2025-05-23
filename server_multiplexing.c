@@ -12,6 +12,9 @@
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 #include <sys/sendfile.h>
+#include <fcntl.h>
+#include <sys/poll.h>
+#include <sys/select.h>
 #include "http_utils.h"
 
 
@@ -24,6 +27,7 @@ int main(int argc, char *argv[]) {
     int clientesAtendidos = 0;
 
     char sendBuff[1025];
+    char buffer[256];
 
     int puerto = 3030;
 
@@ -100,7 +104,9 @@ int main(int argc, char *argv[]) {
     
     FD_ZERO(&readfds);
     FD_SET(0, &readfds);
-    FD_SET(socketListen, &readfds);
+    FD_SET(listenfd, &readfds);
+
+    struct timeval tv;
 
 
     
@@ -146,6 +152,7 @@ int main(int argc, char *argv[]) {
                     
                         fdmax = socketNewCx;
                     }
+                    atenderCliente(&socketNewCx);
                     
                     
                 } else {
@@ -160,7 +167,7 @@ int main(int argc, char *argv[]) {
                         FD_CLR(fd, &readfds);
                         close(fd); 
                         if (fd == fdmax) {
-                            fdmax = socketListen;
+                            fdmax = listenfd;
                             for (int i = 0; i <= FD_SETSIZE; i++) {
                                 if (FD_ISSET(i, &readfds)) {
                                     if (i > fdmax) fdmax = i;

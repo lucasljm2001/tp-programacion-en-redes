@@ -3,7 +3,6 @@
   "configurations": [
     {
       "name": "C/C++ Runner: Debug Session",
-      "type": "lldb",
       "request": "launch",
       "args": [],
       "cwd": "/Users/naranjax/up/programacion en redes/up-redes/tp-programacion-en-redes",

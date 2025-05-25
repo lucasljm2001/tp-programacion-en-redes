@@ -162,7 +162,9 @@ int main(int argc, char *argv[]) {
                 } else {
                     
                     memset(&buffer, 0, 256);
-                    ssize_t readed = (int) atenderCliente(&fd);
+                    int *ptrSocket = malloc(sizeof(int));
+                    *ptrSocket = fd;
+                    ssize_t readed = (ssize_t) atenderCliente(ptrSocket);
                         
                     // 5 seg
                     

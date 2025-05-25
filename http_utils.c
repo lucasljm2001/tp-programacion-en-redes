@@ -33,7 +33,7 @@ HTTPRequest parse_request(const char *buffer) {
     return req;
 }
 
-void* atenderCliente(void* args) {
+void atenderCliente(void* args) {
     int clientSocket = *((int *) args);
     char buffer[2048];
     char response[1024];
@@ -94,7 +94,6 @@ void* atenderCliente(void* args) {
     close(imagefd);
     free(args);
 
-    return NULL;
 }
 
 ssize_t atenderClienteDesdeSelect(int clientSocket) {

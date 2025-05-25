@@ -6,6 +6,7 @@
             "command": "/usr/bin/gcc",
             "args": [
                 "http_utils.c",
+                "threadpool.c",
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",

@@ -19,5 +19,6 @@ typedef struct {
 // Funciones exportadas
 HTTPRequest parse_request(const char *buffer);
 void* atenderCliente(void* args);
+ssize_t atenderClienteDesdeSelect(int clientSocket);
 
 #endif // HTTP_UTILS_H

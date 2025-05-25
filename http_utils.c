@@ -119,7 +119,6 @@ ssize_t atenderClienteDesdeSelect(int clientSocket) {
     } while (nbytes > 0 && totalRead < sizeof(buffer) - 1);
 
     if (nbytes <= 0) {
-        close(clientSocket);
         return nbytes;  // 0 o -1, socket cerrado o error
     }
 

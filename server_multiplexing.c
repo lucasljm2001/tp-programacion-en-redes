@@ -170,15 +170,15 @@ int main(int argc, char *argv[]) {
                     if(readed < 1) {
                         
                         FD_CLR(fd, &readfds);
-                        close(fd); 
                         if (fd == fdmax) {
-                            fdmax = listenfd;
+                            fdmax = fdmax-1;
                             for (int i = 0; i <= FD_SETSIZE; i++) {
                                 if (FD_ISSET(i, &readfds)) {
                                     if (i > fdmax) fdmax = i;
                                 }
                             }
                         }
+                        close(fd);
 
                         
                     }

@@ -94,5 +94,5 @@ void* atenderCliente(void* args) {
     close(imagefd);
     free(args);
 
-    return NULL;
+    return totalRead;
 }

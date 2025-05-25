@@ -157,15 +157,12 @@ int main(int argc, char *argv[]) {
                     
                         fdmax = socketNewCx;
                     }
-                    int* ptrSocket = malloc(sizeof(int));
-                    *ptrSocket = socketNewCx;
-                    atenderCliente(ptrSocket);
                     
                     
                 } else {
                     
                     memset(&buffer, 0, 256);
-                    ssize_t readed = recv(fd, &buffer, 256, 0);
+                    ssize_t readed = atenderCliente(&fd);
                         
                     // 5 seg
                     

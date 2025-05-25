@@ -12,6 +12,9 @@
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 #include <sys/sendfile.h>
+#include "http_utils.h"
+
+
 
 typedef void * (* PCALLBACK) (void *);
 

@@ -103,7 +103,6 @@ int main(int argc, char *argv[]) {
 
     
     FD_ZERO(&readfds);
-    FD_SET(0, &readfds);
     FD_SET(listenfd, &readfds);
 
     struct timeval tv;
@@ -121,12 +120,13 @@ int main(int argc, char *argv[]) {
         tv.tv_sec = 2;
         tv.tv_usec = 500000;
         
+        printf("Max descritpor: %d OK\n", fdmax);
         int ret = select(fdmax + 1, &tempreadfds, NULL, NULL, &tv);
         
        
 
         if(ret == -1) {
-        
+            printf("El malo es %d\n", fdmax);
             perror("select");
         }
         

@@ -96,3 +96,60 @@ void* atenderCliente(void* args) {
 
     return NULL;
 }
+
+ssize_t atenderClienteDesdeSelect(int clientSocket) {
+    int totalRead = 0;
+    char buffer[2048];
+    char response[1024];
+    struct stat fileStats;
+
+    int imagefd = open("./hello.png", O_RDONLY);
+    fstat(imagefd, &fileStats);
+
+    memset(buffer, 0, sizeof(buffer));
+    int nbytes = 0;
+
+    do {
+        nbytes = recv(clientSocket, buffer + totalRead, sizeof(buffer) - totalRead - 1, 0);
+        if (nbytes > 0) {
+            totalRead += nbytes;
+            buffer[totalRead] = '\0';
+            if (strstr(buffer, "\r\n\r\n")) break;
+        }
+    } while (nbytes > 0 && totalRead < sizeof(buffer) - 1);
+
+    if (nbytes <= 0) {
+        close(clientSocket);
+        return nbytes;  // 0 o -1, socket cerrado o error
+    }
+
+    HTTPRequest request = parse_request(buffer);
+
+    printf("Método: %s\n", request.method);
+    printf("Recurso: %s\n", request.resource);
+    printf("Protocolo: %s\n", request.protocol);
+
+    char *responseHeaders;
+    if (strcmp(request.method, "GET") == 0 && strcmp(request.resource, "/imagen.jpg") == 0) {
+        responseHeaders = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";
+    } else {
+        responseHeaders = "HTTP/1.1 404 Not Found\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";
+        imagefd = open("./error.png", O_RDONLY);
+        fstat(imagefd, &fileStats);
+    }
+
+    memset(response, 0, 1024);
+    sprintf(response, responseHeaders, fileStats.st_size);
+
+    send(clientSocket, response, strlen(response), 0);
+    ssize_t sent_bytes = sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
+
+    if (sent_bytes == -1 && errno != EPIPE) {
+        perror("sendfile");
+    }
+
+    close(clientSocket);
+    close(imagefd);
+    return sent_bytes;  // devolvés bytes enviados (puede ser útil)
+}
+

@@ -162,9 +162,8 @@ int main(int argc, char *argv[]) {
                 } else {
                     
                     memset(&buffer, 0, 256);
-                    int *ptrSocket = malloc(sizeof(int));
-                    *ptrSocket = fd;
-                    ssize_t readed = (ssize_t) atenderCliente(ptrSocket);
+
+                    ssize_t readed = atenderClienteDesdeSelect(fd);
                         
                     // 5 seg
                     
@@ -189,7 +188,7 @@ int main(int argc, char *argv[]) {
             }
             
         }
-        
+        printf("fdmax: %d\n", fdmax);
         printf("\n");
 
     }

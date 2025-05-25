@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
                 } else {
                     
                     memset(&buffer, 0, 256);
-                    ssize_t readed = atenderCliente(&fd);
+                    ssize_t readed = (int) atenderCliente(&fd);
                         
                     // 5 seg
                     

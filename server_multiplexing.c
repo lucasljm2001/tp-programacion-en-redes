@@ -146,10 +146,16 @@ int main(int argc, char *argv[]) {
                     
                     int socketNewCx = accept(listenfd, (struct sockaddr *) &sockaddClient, &sockaddClientLength);
                     
-                    if (socketNewCx == -1){
-                    
-                        perror("accept");
+                    if (socketNewCx == -1) {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                            // No hay conexión disponible en modo no bloqueante
+                            continue;
+                        } else {
+                            perror("accept");
+                            continue;
+                        }
                     }
+
 
                     FD_SET(socketNewCx, &readfds);
                     
@@ -160,35 +166,28 @@ int main(int argc, char *argv[]) {
                     
                     
                 } else {
-                    
                     memset(&buffer, 0, 256);
 
                     ssize_t readed = atenderClienteDesdeSelect(fd);
-                        
-                    // 5 seg
-                    
-                    if(readed < 1) {
-                        
-                        FD_CLR(fd, &readfds);
+
+                    if (readed < 1) {
+                        close(fd);                  // Primero cerrás el descriptor
+                        FD_CLR(fd, &readfds);       // Luego lo quitás del set
+
+                        // Actualizás fdmax de forma segura
                         if (fd == fdmax) {
-                            fdmax = fdmax-1;
-                            for (int i = 0; i <= FD_SETSIZE; i++) {
+                            fdmax = listenfd; // valor por defecto mínimo
+                            for (int i = 0; i < FD_SETSIZE; i++) {
                                 if (FD_ISSET(i, &readfds)) {
                                     if (i > fdmax) fdmax = i;
                                 }
                             }
                         }
-                        close(fd);
-
-                        
                     }
-    
                 }
-            
             }
             
         }
-        printf("fdmax: %d\n", fdmax);
         printf("\n");
 
     }

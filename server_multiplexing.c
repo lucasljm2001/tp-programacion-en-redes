@@ -171,8 +171,10 @@ int main(int argc, char *argv[]) {
                     ssize_t readed = atenderClienteDesdeSelect(fd);
 
                     if (readed < 1) {
-                        close(fd);                  // Primero cerrás el descriptor
-                        FD_CLR(fd, &readfds);       // Luego lo quitás del set
+                        if (fd > 0) {
+                            close(fd);
+                            FD_CLR(fd, &readfds);
+                        }
 
                         // Actualizás fdmax de forma segura
                         if (fd == fdmax) {

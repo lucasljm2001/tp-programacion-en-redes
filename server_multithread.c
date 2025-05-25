@@ -13,102 +13,73 @@
 #include <sys/stat.h>
 #include <sys/sendfile.h>
 #include "http_utils.h"
+#include "threadpool.h"
 
+
+#define DEFAULT_PORT 3030
+#define DEFAULT_POOL_SIZE 4
+#define DEFAULT_QUEUE_SIZE 16
 
 
 int main(int argc, char *argv[]) {
     int listenfd = 0, clientSocket = 0;
-    struct sockaddr_in serv_addr;
-    struct sockaddr_in client_addr;
+    struct sockaddr_in serv_addr, client_addr;
+    socklen_t size = sizeof(client_addr);
+    int puerto = DEFAULT_PORT;
+    int pool_size = DEFAULT_POOL_SIZE;
 
-    int clientesAtendidos = 0;
+    if (argc > 1) puerto = atoi(argv[1]);
+    if (argc > 2) pool_size = atoi(argv[2]);
 
-    char sendBuff[1025];
-
-    int puerto = 3030;
-
-    if (argc>1)
-    {
-        puerto = atoi(argv[1]);
-    }
-    
-    
-
-    /* creates an UN-named socket inside the kernel and returns
-     * an integer known as socket descriptor
-     * This function takes domain/family as its first argument.
-     * For Internet family of IPv4 addresses we use AF_INET
-     */
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
-    
+    int yes = 1;
+    setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
 
-    /* Do not wait to listener socket to be released
-     */
-    int yes=1;
-    setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
-
-
-    memset(&serv_addr, '0', sizeof(serv_addr));
-    memset(sendBuff, '0', sizeof(sendBuff));
-    
-    
+    memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //sudo apt install net-tool
-    
-    
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_addr.sin_port = htons(puerto);
 
-
-    /* The call to the function "bind()" assigns the details specified
-     * in the structure serv_addr' to the socket created in the step above
-     */
     bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-
-    /* The call to the function "listen()" with second argument as 10 specifies
-     * maximum number of client connections that server will queue for this listening
-     * socket.
-     */
     listen(listenfd, 10);
-    
-    printf("listening port %d\n", puerto);
-    
-    /* In the call to accept(), the server is put to sleep and when for an incoming
-     * client request, the three way TCP handshake* is complete, the function accept()
-     * wakes up and returns the socket descriptor representing the client socket.
-     */
-    socklen_t size = sizeof(client_addr);
 
-    PCALLBACK callback = atenderCliente;
+    printf("Servidor escuchando en puerto %d con pool de %d threads\n", puerto, pool_size);
 
-
-    
-    while (1)
-    {
-        int* nuevoSocket = malloc(sizeof(int));
-
-        clientSocket =  accept(listenfd, (struct sockaddr*) &client_addr, &size);
-
-        printf("Acepto conexion\n");
-
-        *nuevoSocket = clientSocket;
-
-        pthread_t clienteThread;
-        pthread_attr_t threadAttrs;
-
-
-        pthread_attr_init(&threadAttrs);
-        pthread_attr_setdetachstate(&threadAttrs, PTHREAD_CREATE_DETACHED);
-        pthread_attr_setschedpolicy(&threadAttrs, SCHED_FIFO);  
-    
-
-        pthread_create(&clienteThread, &threadAttrs,callback, nuevoSocket);
-
-        // pthread_detach(thread);
-        
-        // clientesAtendidos++;
-
+    // Crear el thread pool
+    threadpool_t *pool = threadpool_create(pool_size, DEFAULT_QUEUE_SIZE, 0);
+    if (!pool) {
+        fprintf(stderr, "Error al crear el pool de threads\n");
+        exit(EXIT_FAILURE);
     }
 
+    while (1) {
+        int *nuevoSocket = malloc(sizeof(int));
+        if (!nuevoSocket) {
+            perror("malloc");
+            continue;
+        }
+
+        *nuevoSocket = accept(listenfd, (struct sockaddr *)&client_addr, &size);
+        if (*nuevoSocket < 0) {
+            perror("accept");
+            free(nuevoSocket);
+            continue;
+        }
+
+        printf("Conexión aceptada desde %s:%d\n",
+               inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+
+        // Agregar la tarea al thread pool
+        int err = threadpool_add(pool, atenderCliente, nuevoSocket, 0);
+        if (err) {
+            fprintf(stderr, "Fallo al agregar tarea al pool: código %d\n", err);
+            close(*nuevoSocket);
+            free(nuevoSocket);
+        }
+    }
+
+    threadpool_destroy(pool, 0); // nunca se llega aquí en este servidor, pero es lo correcto
     close(listenfd);
-    
+
+    return 0;
 }

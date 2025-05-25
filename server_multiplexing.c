@@ -120,10 +120,18 @@ int main(int argc, char *argv[]) {
         tv.tv_sec = 2;
         tv.tv_usec = 500000;
         
-        printf("Max descritpor: %d OK\n", fdmax);
+        
+        printf("Descriptores activos antes de select: ");
+        for (int i = 0; i <= fdmax; i++) {
+            if (FD_ISSET(i, &readfds)) {
+                printf("%d ", i);
+            }
+        }
+        printf("\n");
         int ret = select(fdmax + 1, &tempreadfds, NULL, NULL, &tv);
         
-       
+        
+            
 
         if(ret == -1) {
             printf("El malo es %d\n", fdmax);
@@ -136,7 +144,7 @@ int main(int argc, char *argv[]) {
             
             if(FD_ISSET(fd, &tempreadfds)) {
                 
-                printf("event on descriptor: %d OK\n", fd);
+                
                 
                 
                 if(fd == listenfd) {

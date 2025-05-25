@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/naranjax/up/programacion en redes/up-redes/tp-programacion-en-redes",
+      "program": "/Users/naranjax/up/programacion en redes/up-redes/tp-programacion-en-redes/build/Debug/outDebug"
+    }
+  ]
+}

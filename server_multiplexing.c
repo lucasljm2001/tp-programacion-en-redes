@@ -178,22 +178,22 @@ int main(int argc, char *argv[]) {
 
                     ssize_t readed = atenderClienteDesdeSelect(fd);
 
-                    if (readed < 1) {
-                        if (fd > 0) {
-                            close(fd);
-                            FD_CLR(fd, &readfds);
-                        }
+                    
+                    if (fd > 0) {
+                        close(fd);
+                        FD_CLR(fd, &readfds);
+                    }
 
-                        // Actualizás fdmax de forma segura
-                        if (fd == fdmax) {
-                            fdmax = listenfd; // valor por defecto mínimo
-                            for (int i = 0; i < FD_SETSIZE; i++) {
-                                if (FD_ISSET(i, &readfds)) {
-                                    if (i > fdmax) fdmax = i;
-                                }
+                    // Actualizás fdmax de forma segura
+                    if (fd == fdmax) {
+                        fdmax = listenfd; // valor por defecto mínimo
+                        for (int i = 0; i < FD_SETSIZE; i++) {
+                            if (FD_ISSET(i, &readfds)) {
+                                if (i > fdmax) fdmax = i;
                             }
                         }
                     }
+                    
                 }
             }
             

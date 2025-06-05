@@ -82,7 +82,6 @@ int main(int argc, char *argv[]) {
      */
     socklen_t size = sizeof(client_addr);
 
-    PCALLBACK callback = atenderCliente;
 
     fd_set readfds;
     fd_set tempreadfds;
@@ -156,7 +155,7 @@ int main(int argc, char *argv[]) {
                     
                     if (socketNewCx == -1) {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                            // No hay conexión disponible en modo no bloqueante
+                            
                             continue;
                         } else {
                             perror("accept");
@@ -184,7 +183,6 @@ int main(int argc, char *argv[]) {
                         FD_CLR(fd, &readfds);
                     }
 
-                    // Actualizás fdmax de forma segura
                     if (fd == fdmax) {
                         fdmax = listenfd; // valor por defecto mínimo
                         for (int i = 0; i < FD_SETSIZE; i++) {

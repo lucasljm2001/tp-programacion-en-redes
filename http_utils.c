@@ -149,6 +149,6 @@ ssize_t atenderClienteDesdeSelect(int clientSocket) {
 
     close(clientSocket);
     close(imagefd);
-    return sent_bytes;  // devolvés bytes enviados (puede ser útil)
+    return sent_bytes;  // Devuelvo bytes enviados para ver si cerro la conexion
 }
 

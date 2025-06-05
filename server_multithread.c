@@ -103,9 +103,6 @@ int main(int argc, char *argv[]) {
 
         pthread_create(&clienteThread, &threadAttrs,callback, nuevoSocket);
 
-        // pthread_detach(thread);
-        
-        // clientesAtendidos++;
 
     }
 

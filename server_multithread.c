@@ -17,7 +17,7 @@
 
 
 #define DEFAULT_PORT 3030
-#define DEFAULT_POOL_SIZE 4
+#define DEFAULT_POOL_SIZE 1
 #define DEFAULT_QUEUE_SIZE 16
 
 

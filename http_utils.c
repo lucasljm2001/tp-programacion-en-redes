@@ -45,6 +45,7 @@ void atenderCliente(void* args) {
     memset(buffer, 0, sizeof(buffer));
     int totalRead = 0;
     int nbytes = 0;
+    sleep(10);
 
     do {
         nbytes = recv(clientSocket, buffer + totalRead, sizeof(buffer) - totalRead - 1, 0);

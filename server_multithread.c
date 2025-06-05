@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
         printf("Conexión aceptada desde %s:%d\n",
                inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
-        // Agregar la tarea al thread pool
+        // PREGUNTAR SOBRE PONER EN ESPERA COMO SERIA, ACA SOLO RECHAZA
         int err = threadpool_add(pool, atenderCliente, nuevoSocket, 0);
         if (err) {
             fprintf(stderr, "Fallo al agregar tarea al pool: código %d\n", err);

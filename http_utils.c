@@ -81,7 +81,7 @@ void* atenderCliente(void* args) {
     send(clientSocket, response, strlen(response), 0);
     ssize_t sent_bytes = sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
 
-    if (sent_bytes == -1)
+    if (ssize_t sent_bytes = sendfile(clientSocket, imagefd, NULL, fileStats.st_size) == -1)
     {
         if (errno == EPIPE)
         {
@@ -146,9 +146,8 @@ ssize_t atenderClienteDesdeSelect(int clientSocket) {
     sprintf(response, responseHeaders, fileStats.st_size);
 
     send(clientSocket, response, strlen(response), 0);
-    ssize_t sent_bytes = sendfile(clientSocket, imagefd, NULL, fileStats.st_size);
 
-    if (sent_bytes == -1 && errno != EPIPE) {
+    if (ssize_t sent_bytes = sendfile(clientSocket, imagefd, NULL, fileStats.st_size) && errno != EPIPE) {
         perror("sendfile");
     }
 

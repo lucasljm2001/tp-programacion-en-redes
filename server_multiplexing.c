@@ -16,6 +16,8 @@
 #include <sys/poll.h>
 #include <sys/select.h>
 #include "http_utils.h"
+#include <signal.h>
+
 
 
 

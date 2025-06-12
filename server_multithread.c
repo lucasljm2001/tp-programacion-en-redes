@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 #include <sys/sendfile.h>
 #include "http_utils.h"
+#include <signal.h>
+
 
 
 

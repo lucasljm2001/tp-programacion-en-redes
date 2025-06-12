@@ -20,6 +20,7 @@
 
 
 int main(int argc, char *argv[]) {
+    signal(SIGPIPE, SIG_IGN);
     int listenfd = 0, clientSocket = 0;
     struct sockaddr_in serv_addr;
     struct sockaddr_in client_addr;

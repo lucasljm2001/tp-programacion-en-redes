@@ -13,6 +13,27 @@
 #include <arpa/inet.h>
 
 HTTPRequest parse_request(const char *buffer) {
+    HTTPRequest req = {0};
+    char *buffer_copy = strdup(buffer);
+    if (!buffer_copy) return req;
+
+    char *saveptr;
+    char *line = strtok_r(buffer_copy, "\r\n", &saveptr);
+
+    if (line) {
+        sscanf(line, "%15s %1023s %15s", req.method, req.resource, req.protocol);
+    }
+
+    while ((line = strtok_r(NULL, "\r\n", &saveptr)) && req.header_count < 10) {
+        if (strlen(line) == 0) break;
+        strncpy(req.headers[req.header_count++], line, 255);
+    }
+
+    free(buffer_copy);
+    return req;
+}
+
+void* atenderCliente(void* args) {
     int clientSocket = *((int *) args);
     char buffer[2048];
     char response[1024];

@@ -131,7 +131,6 @@ ssize_t atenderClienteDesdeSelect(int clientSocket) {
     if (totalRead == 0) {
         printf("No se recibió ninguna solicitud HTTP\n");
         close(clientSocket);
-        free(args);
         return NULL;
     }
 

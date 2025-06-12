@@ -121,6 +121,13 @@ ssize_t atenderClienteDesdeSelect(int clientSocket) {
         }
     } while (nbytes > 0 && totalRead < sizeof(buffer) - 1);
 
+    if (totalRead == 0) {
+        printf("No se recibió ninguna solicitud HTTP\n");
+        close(clientSocket);
+        free(args);
+        return NULL;
+    }
+
     HTTPRequest request = parse_request(buffer);
 
     printf("Método: %s\n", request.method);

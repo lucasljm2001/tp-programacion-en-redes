@@ -41,11 +41,6 @@ int main(int argc, char *argv[]) {
     
     
 
-    /* creates an UN-named socket inside the kernel and returns
-     * an integer known as socket descriptor
-     * This function takes domain/family as its first argument.
-     * For Internet family of IPv4 addresses we use AF_INET
-     */
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (listenfd < 0) {
@@ -54,8 +49,7 @@ int main(int argc, char *argv[]) {
     }
     
 
-    /* Do not wait to listener socket to be released
-     */
+
     int yes=1;
     setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
     fcntl(listenfd, F_SETFL, O_NONBLOCK);
@@ -65,25 +59,18 @@ int main(int argc, char *argv[]) {
     
     
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //sudo apt install net-tool
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
     
     
     serv_addr.sin_port = htons(puerto);
 
-
-    /* The call to the function "bind()" assigns the details specified
-     * in the structure serv_addr' to the socket created in the step above
-     */
     if (bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("bind");
         close(listenfd);
         exit(EXIT_FAILURE);
     }
 
-    /* The call to the function "listen()" with second argument as 10 specifies
-     * maximum number of client connections that server will queue for this listening
-     * socket.
-     */
+
 
     if (listen(listenfd, 10) < 0) {
         perror("listen");
@@ -94,10 +81,7 @@ int main(int argc, char *argv[]) {
     
     printf("listening port %d\n", puerto);
     
-    /* In the call to accept(), the server is put to sleep and when for an incoming
-     * client request, the three way TCP handshake* is complete, the function accept()
-     * wakes up and returns the socket descriptor representing the client socket.
-     */
+
     socklen_t size = sizeof(client_addr);
 
 
@@ -105,14 +89,9 @@ int main(int argc, char *argv[]) {
     fd_set tempreadfds;
     
     
-    // A client socket is ready for writing when its connection is fully established
     fd_set writefds;
     
     
-    // "Exceptional conditions” does not mean errors—errors are reported immediately when
-    // an erroneous system call is executed, and do not constitute a state of the descriptor.
-    // Rather, they include conditions such as the presence of an urgent message on a socket.
-    // See Sockets, for information on urgent messages.
     fd_set exceptionfds;
     
   
@@ -130,10 +109,6 @@ int main(int argc, char *argv[]) {
     {
         tempreadfds = readfds;
 
-        // specifies the minimum interval that select() should block
-        // waiting for a file descriptor to become ready.
-        // If both fields of the timeval structure are zero, then select() returns immediately.
-        // If timeout is NULL (no timeout), select() can block indefinitely.
         tv.tv_sec = 2;
         tv.tv_usec = 500000;
         

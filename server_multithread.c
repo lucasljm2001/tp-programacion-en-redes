@@ -37,11 +37,7 @@ int main(int argc, char *argv[]) {
     
     
 
-    /* creates an UN-named socket inside the kernel and returns
-     * an integer known as socket descriptor
-     * This function takes domain/family as its first argument.
-     * For Internet family of IPv4 addresses we use AF_INET
-     */
+
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (listenfd < 0) {
@@ -61,46 +57,31 @@ int main(int argc, char *argv[]) {
     
     
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); //sudo apt install net-tool
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
     
     
     serv_addr.sin_port = htons(puerto);
 
 
-    /* The call to the function "bind()" assigns the details specified
-     * in the structure serv_addr' to the socket created in the step above
-     */
+
     if (bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("bind");
         close(listenfd);
         exit(EXIT_FAILURE);
     }
-    {
-        /* code */
-    }
-    
 
-    /* The call to the function "listen()" with second argument as 10 specifies
-     * maximum number of client connections that server will queue for this listening
-     * socket.
-     */
     if (listen(listenfd, 10) < 0) {
         perror("listen");
         close(listenfd);
         exit(EXIT_FAILURE);
     }
-    {
-        /* code */
-    }
+
     
     
     
     printf("listening port %d\n", puerto);
     
-    /* In the call to accept(), the server is put to sleep and when for an incoming
-     * client request, the three way TCP handshake* is complete, the function accept()
-     * wakes up and returns the socket descriptor representing the client socket.
-     */
+
     socklen_t size = sizeof(client_addr);
 
     PCALLBACK callback = atenderCliente;

@@ -38,14 +38,13 @@ void* atenderCliente(void* args) {
     char buffer[2048];
     char response[1024];
     struct stat fileStats;
-
-    int imagefd = open("./hello.png", O_RDONLY);
-    fstat(imagefd, &fileStats);
+    char filepath[1024];
 
     memset(buffer, 0, sizeof(buffer));
     int totalRead = 0;
     int nbytes = 0;
 
+    // Leer solicitud HTTP hasta el final del header
     do {
         nbytes = recv(clientSocket, buffer + totalRead, sizeof(buffer) - totalRead - 1, 0);
         if (nbytes > 0) {
@@ -60,18 +59,23 @@ void* atenderCliente(void* args) {
     printf("Método: %s\n", request.method);
     printf("Recurso: %s\n", request.resource);
     printf("Protocolo: %s\n", request.protocol);
+
     
+    snprintf(filepath, sizeof(filepath), ".%s", request.resource);  
+
+    int imagefd = open(filepath, O_RDONLY);
     char *responseHeaders;
 
-    if (strcmp(request.method, "GET") == 0 && strcmp(request.resource, "/imagen.jpg") == 0) {
+    if (strcmp(request.method, "GET") == 0 && imagefd != -1 && fstat(imagefd, &fileStats) == 0) {
         responseHeaders = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";
     } else {
-        responseHeaders = "HTTP/1.1 404 Not Found\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";
+        // Fallback a imagen de error si no se encontró la solicitada
         imagefd = open("./error.png", O_RDONLY);
         fstat(imagefd, &fileStats);
+        responseHeaders = "HTTP/1.1 404 Not Found\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";
     }
 
-    memset(response, 0, 1024);
+    memset(response, 0, sizeof(response));
     sprintf(response, responseHeaders, fileStats.st_size);
 
     send(clientSocket, response, strlen(response), 0);
@@ -98,17 +102,16 @@ void* atenderCliente(void* args) {
 }
 
 ssize_t atenderClienteDesdeSelect(int clientSocket) {
-    int totalRead = 0;
     char buffer[2048];
     char response[1024];
     struct stat fileStats;
-
-    int imagefd = open("./hello.png", O_RDONLY);
-    fstat(imagefd, &fileStats);
+    char filepath[1024];
 
     memset(buffer, 0, sizeof(buffer));
+    int totalRead = 0;
     int nbytes = 0;
 
+    // Leer solicitud HTTP hasta el final del header
     do {
         nbytes = recv(clientSocket, buffer + totalRead, sizeof(buffer) - totalRead - 1, 0);
         if (nbytes > 0) {
@@ -118,26 +121,28 @@ ssize_t atenderClienteDesdeSelect(int clientSocket) {
         }
     } while (nbytes > 0 && totalRead < sizeof(buffer) - 1);
 
-    if (nbytes <= 0) {
-        return nbytes;  // 0 o -1, socket cerrado o error
-    }
-
     HTTPRequest request = parse_request(buffer);
 
     printf("Método: %s\n", request.method);
     printf("Recurso: %s\n", request.resource);
     printf("Protocolo: %s\n", request.protocol);
 
+    
+    snprintf(filepath, sizeof(filepath), ".%s", request.resource);  
+
+    int imagefd = open(filepath, O_RDONLY);
     char *responseHeaders;
-    if (strcmp(request.method, "GET") == 0 && strcmp(request.resource, "/imagen.jpg") == 0) {
+
+    if (strcmp(request.method, "GET") == 0 && imagefd != -1 && fstat(imagefd, &fileStats) == 0) {
         responseHeaders = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";
     } else {
-        responseHeaders = "HTTP/1.1 404 Not Found\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";
+        // Fallback a imagen de error si no se encontró la solicitada
         imagefd = open("./error.png", O_RDONLY);
         fstat(imagefd, &fileStats);
+        responseHeaders = "HTTP/1.1 404 Not Found\r\nContent-Type: image/jpeg\r\nContent-Length: %ld\r\nConnection: close\r\n\r\n";
     }
 
-    memset(response, 0, 1024);
+    memset(response, 0, sizeof(response));
     sprintf(response, responseHeaders, fileStats.st_size);
 
     send(clientSocket, response, strlen(response), 0);
